@@ -8,15 +8,17 @@ import javax.persistence.ManyToOne;
 
 @Entity
 public class Grape {
-    @Id
-    @GeneratedValue
-    private Long id;
 
-    @ManyToOne()
-    private User user;
+    @GeneratedValue
+    @Id
+    Long id;
+
+    @ManyToOne
+    Grapevine grapevine;
+
 
     @Column
-    private String st;
+    String st;
 
     public Long getId() {
         return id;
@@ -26,12 +28,12 @@ public class Grape {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Grapevine getGrapevine() {
+        return grapevine;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setGrapevine(Grapevine grapevine) {
+        this.grapevine = grapevine;
     }
 
     public String getSt() {

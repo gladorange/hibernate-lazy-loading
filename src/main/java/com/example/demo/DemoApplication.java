@@ -1,11 +1,6 @@
 package com.example.demo;
 
-import java.util.HashMap;
-
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -14,19 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.example.demo.crud.ManualLoading;
-import com.example.demo.crud.UserCrud;
+import com.example.demo.crud.JPAService;
 
 @SpringBootApplication
 public class DemoApplication {
 
 	@Autowired
-	UserCrud parentDao;
-	@Autowired
-	ManualLoading manualLoading;
-
-	@PersistenceContext
-	EntityManager em;
+	JPAService jpaService;
 
 	@PostConstruct
 	public void doSomething() {
@@ -46,9 +35,17 @@ public class DemoApplication {
 			u.getPeaches().add(p);
 			p.setUser(u);
 
-			Grape g = new Grape();
-			g.setSt("Grape #"+i);
-			u.getGrapes().add(g);
+			Grapevine g = new Grapevine();
+
+			for (int j = 0; j < 10; j++) {
+				Grape grape = new Grape();
+				grape.setSt("Grape in grapevine" + i + " #" + j);
+				grape.setGrapevine(g);
+				g.getGrapes().add(grape);
+			}
+
+			g.setSt("Grapevine #"+i);
+			u.getGrapevines().add(g);
 			g.setUser(u);
 
 			Orange o = new Orange();
@@ -58,52 +55,22 @@ public class DemoApplication {
 
 		}
 
-		parentDao.save(u);
+		jpaService.merge(u);
 
 		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
 				.getLogger("org.hibernate.SQL");
 		logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
 
-		tryJoinFetches();
-		tryLazyLoading();
-		tryFetchGraph();
-		manualLoading.tryManualLoading();
+		jpaService.tryJoinFetches();
+		jpaService.tryLazyLoading();
+		jpaService.tryFetchGraph();
+		jpaService.tryManualLoading();
 
 
 	}
 
 
 
-	private void tryFetchGraph() {
-		System.out.println("TRYING TO FETCH USER WITH entity graph");
-		long before = m();
-		EntityGraph<User> entityGraph = em.createEntityGraph(User.class);
-		entityGraph.addAttributeNodes("oranges", "apples", "peaches", "grapes");
-		HashMap<String, Object> properties = new HashMap<>();
-		properties.put("javax.persistence.fetchgraph", entityGraph);
-		User user = em.find(User.class, 1L, properties);
-		readAllEntities(user);
-		System.out.println("Fully initialized with lazy loading queries took" + (before - m()));
-	}
-
-	private void tryLazyLoading() {
-		System.out.println("TRYING TO FETCH USER WITH lazy loading");
-		long before = m();
-		User user = em.find(User.class, 1L);
-
-		readAllEntities(user);
-		System.out.println("Fully initialized with lazy loading queries took" + (before - m()));
-	}
-
-	private void tryJoinFetches() {
-		System.out.println("TRYING TO FETCH USER WITH FETCH JOINS");
-		long before = m();
-		User fullyInitialized = (User) em.createQuery("SELECT u from User u LEFT JOIN fetch u.apples LEFT JOIN fetch u"
-				+ ".oranges LEFT JOIN fetch u.grapes LEFT JOIN fetch u.oranges " + " where u.id=1").getSingleResult();
-		readAllEntities(fullyInitialized);
-		System.out.println("Fully initialized with join fetches took" + (before - m()));
-
-	}
 
 	public static void readAllEntities(User user) {
 		for (com.example.demo.Orange Orange : user.getOranges()) {
@@ -117,10 +84,13 @@ public class DemoApplication {
 
 		}
 
-		for (com.example.demo.Grape Grape : user.getGrapes()) {
-			Grape.getSt();
-			Grape.getUser().getSt();
+		for (Grapevine Grapevine : user.getGrapevines()) {
+			Grapevine.getSt();
+			Grapevine.getUser().getSt();
 
+			for (Grape grape : Grapevine.getGrapes()) {
+				grape.getSt();
+			}
 		}
 
 		for (com.example.demo.Peach Peach : user.getPeaches()) {

@@ -29,7 +29,7 @@ public class User {
     Set<Peach> peaches = new HashSet<>();
 
     @OneToMany(mappedBy = "user",cascade = {CascadeType.PERSIST,CascadeType.MERGE})
-    Set<Grape> grapes = new HashSet<>();
+    Set<Grapevine> grapevines = new HashSet<>();
 
     public Set<Apple> getApples() {
         return apples;
@@ -47,12 +47,12 @@ public class User {
         this.peaches = peaches;
     }
 
-    public Set<Grape> getGrapes() {
-        return grapes;
+    public Set<Grapevine> getGrapevines() {
+        return grapevines;
     }
 
-    public void setGrapes(Set<Grape> grapes) {
-        this.grapes = grapes;
+    public void setGrapevines(Set<Grapevine> grapevines) {
+        this.grapevines = grapevines;
     }
 
     public Long getId() {
